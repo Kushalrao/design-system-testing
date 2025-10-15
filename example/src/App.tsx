@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
-import { StayCard, Typography } from 'design-system';
+import { StayCard } from './components/StayCard';
+import { Typography } from './components/Typography';
 
 export default function App() {
   return (
