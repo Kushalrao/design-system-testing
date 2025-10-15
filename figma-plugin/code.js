@@ -64,10 +64,13 @@ function mapVariableTypeToTokenType(figmaType) {
 async function syncToGitHub(tokens, config) {
   try {
     console.log('Starting GitHub sync...');
+    console.log('Config:', config);
+    console.log('Tokens:', tokens);
     
     // Get current file SHA (required for updates)
     let sha;
     try {
+      console.log('Checking for existing file...');
       const response = await fetch(
         `https://api.github.com/repos/${config.owner}/${config.repo}/contents/tokens.json`,
         {
@@ -78,17 +81,32 @@ async function syncToGitHub(tokens, config) {
         }
       );
       
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
         sha = data.sha;
         console.log('Found existing file, SHA:', sha);
+      } else {
+        console.log('File does not exist, will create new one');
       }
     } catch (error) {
-      console.log('File does not exist yet, will create new one');
+      console.log('Error checking existing file:', error);
     }
 
     // Create/update tokens.json
-    const content = btoa(JSON.stringify(tokens, null, 2));
+    console.log('Creating base64 content...');
+    const jsonString = JSON.stringify(tokens, null, 2);
+    console.log('JSON string length:', jsonString.length);
+    
+    let content;
+    try {
+      content = btoa(unescape(encodeURIComponent(jsonString)));
+      console.log('Base64 content created, length:', content.length);
+    } catch (error) {
+      console.error('Error creating base64:', error);
+      throw new Error('Failed to encode content: ' + error.message);
+    }
     
     const commitResponse = await fetch(
       `https://api.github.com/repos/${config.owner}/${config.repo}/contents/tokens.json`,
