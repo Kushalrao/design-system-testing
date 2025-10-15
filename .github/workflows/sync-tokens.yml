@@ -1,0 +1,56 @@
+name: Sync Design Tokens
+
+on:
+  push:
+    paths:
+      - 'tokens.json'
+  workflow_dispatch:
+
+jobs:
+  generate-tokens:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Generate TypeScript tokens
+        run: npm run generate:tokens
+        
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Commit changes
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config user.name "Design Token Bot"
+          git config user.email "bot@design-system.com"
+          git add src/tokens/
+          git commit -m "🎨 Update design tokens from Figma
+
+          Auto-generated from tokens.json
+          Generated at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          git push
+          
+      - name: Build package
+        run: npm run prepare
+        
+      - name: Run tests
+        run: npm test

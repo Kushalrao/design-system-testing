@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Design System Sync</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 300px;
+    }
+    
+    h2 {
+      margin: 0 0 16px 0;
+      color: #1a1a1a;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    
+    .sync-button {
+      width: 100%;
+      padding: 12px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    
+    .sync-button:hover {
+      background: #0052a3;
+    }
+    
+    .sync-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎨 Design System Sync</h2>
+    
+    <div class="form-group">
+      <label for="githubToken">GitHub Token</label>
+      <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+    </div>
+    
+    <div class="form-group">
+      <label for="owner">Repository Owner</label>
+      <input type="text" id="owner" placeholder="your-username">
+    </div>
+    
+    <div class="form-group">
+      <label for="repo">Repository Name</label>
+      <input type="text" id="repo" placeholder="design-system">
+    </div>
+    
+    <div class="form-group">
+      <label for="branch">Branch</label>
+      <select id="branch">
+        <option value="main">main</option>
+        <option value="develop">develop</option>
+      </select>
+    </div>
+    
+    <button class="sync-button" id="syncButton">
+      🔄 Sync to Code
+    </button>
+    
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const syncButton = document.getElementById('syncButton');
+    const statusDiv = document.getElementById('status');
+    
+    function showStatus(message, type = 'info') {
+      statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+    
+    function setLoading(loading) {
+      syncButton.disabled = loading;
+      syncButton.textContent = loading ? 'Syncing...' : '🔄 Sync to Code';
+    }
+    
+    syncButton.addEventListener('click', async () => {
+      const config = {
+        token: document.getElementById('githubToken').value,
+        owner: document.getElementById('owner').value,
+        repo: document.getElementById('repo').value,
+        branch: document.getElementById('branch').value,
+        createPR: false,
+      };
+      
+      if (!config.token || !config.owner || !config.repo) {
+        showStatus('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      setLoading(true);
+      showStatus('Extracting variables from Figma...', 'info');
+      
+      // Extract variables first
+      parent.postMessage({ pluginMessage: { type: 'extract-variables' } }, '*');
+    });
+    
+    // Listen for messages from the plugin
+    window.onmessage = async (event) => {
+      const { type, tokens, result, error } = event.data.pluginMessage;
+      
+      if (type === 'variables-extracted') {
+        showStatus('Variables extracted! Syncing to GitHub...', 'info');
+        
+        const config = {
+          token: document.getElementById('githubToken').value,
+          owner: document.getElementById('owner').value,
+          repo: document.getElementById('repo').value,
+          branch: document.getElementById('branch').value,
+          createPR: false,
+        };
+        
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'sync-to-github', 
+            tokens, 
+            config 
+          } 
+        }, '*');
+      }
+      
+      if (type === 'sync-complete') {
+        setLoading(false);
+        
+        if (result.success) {
+          showStatus(
+            `✅ Synced successfully!<br><a href="${result.commitUrl}" target="_blank">View commit</a>`,
+            'success'
+          );
+        } else {
+          showStatus(`❌ Sync failed: ${result.error}`, 'error');
+        }
+      }
+      
+      if (type === 'error') {
+        setLoading(false);
+        showStatus(`❌ Error: ${error}`, 'error');
+      }
+    };
+  </script>
+</body>
+</html>

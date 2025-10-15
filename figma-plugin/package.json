@@ -1,0 +1,13 @@
+{
+  "name": "design-system-sync-plugin",
+  "version": "1.0.0",
+  "description": "Figma plugin to sync design tokens to React Native code",
+  "main": "code.js",
+  "scripts": {
+    "build": "echo 'Plugin is ready to use'",
+    "dev": "echo 'Plugin is ready to use'"
+  },
+  "keywords": ["figma", "plugin", "design-tokens", "react-native"],
+  "author": "Kushal",
+  "license": "MIT"
+}
