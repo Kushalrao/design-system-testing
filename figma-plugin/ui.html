@@ -102,12 +102,12 @@
     
     <div class="form-group">
       <label for="owner">Repository Owner</label>
-      <input type="text" id="owner" placeholder="your-username">
+      <input type="text" id="owner" placeholder="Kushalrao">
     </div>
     
     <div class="form-group">
       <label for="repo">Repository Name</label>
-      <input type="text" id="repo" placeholder="design-system">
+      <input type="text" id="repo" placeholder="design-system-testing">
     </div>
     
     <div class="form-group">
@@ -138,7 +138,7 @@
       syncButton.textContent = loading ? 'Syncing...' : '🔄 Sync to Code';
     }
     
-    syncButton.addEventListener('click', async () => {
+    syncButton.addEventListener('click', () => {
       const config = {
         token: document.getElementById('githubToken').value,
         owner: document.getElementById('owner').value,
@@ -155,15 +155,15 @@
       setLoading(true);
       showStatus('Extracting variables from Figma...', 'info');
       
-      // Extract variables first
+      // Send message to plugin
       parent.postMessage({ pluginMessage: { type: 'extract-variables' } }, '*');
     });
     
     // Listen for messages from the plugin
-    window.onmessage = async (event) => {
-      const { type, tokens, result, error } = event.data.pluginMessage;
+    window.onmessage = (event) => {
+      const message = event.data.pluginMessage;
       
-      if (type === 'variables-extracted') {
+      if (message.type === 'variables-extracted') {
         showStatus('Variables extracted! Syncing to GitHub...', 'info');
         
         const config = {
@@ -177,28 +177,28 @@
         parent.postMessage({ 
           pluginMessage: { 
             type: 'sync-to-github', 
-            tokens, 
-            config 
+            tokens: message.tokens, 
+            config: config 
           } 
         }, '*');
       }
       
-      if (type === 'sync-complete') {
+      if (message.type === 'sync-complete') {
         setLoading(false);
         
-        if (result.success) {
+        if (message.result.success) {
           showStatus(
-            `✅ Synced successfully!<br><a href="${result.commitUrl}" target="_blank">View commit</a>`,
+            `✅ Synced successfully!<br><a href="${message.result.commitUrl}" target="_blank">View commit</a>`,
             'success'
           );
         } else {
-          showStatus(`❌ Sync failed: ${result.error}`, 'error');
+          showStatus(`❌ Sync failed: ${message.result.error}`, 'error');
         }
       }
       
-      if (type === 'error') {
+      if (message.type === 'error') {
         setLoading(false);
-        showStatus(`❌ Error: ${error}`, 'error');
+        showStatus(`❌ Error: ${message.error}`, 'error');
       }
     };
   </script>

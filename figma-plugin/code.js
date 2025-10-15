@@ -9,7 +9,10 @@ figma.showUI(__html__, { width: 300, height: 400 });
 // Extract variables from Figma
 async function extractVariables() {
   try {
+    console.log('Starting variable extraction...');
     const collections = await figma.variables.getLocalVariableCollections();
+    console.log('Found collections:', collections.length);
+    
     const tokens = {
       collections: {},
       metadata: {
@@ -20,6 +23,7 @@ async function extractVariables() {
     };
 
     for (const collection of collections) {
+      console.log('Processing collection:', collection.name);
       const variables = collection.variableIds.map(id => 
         figma.variables.getVariableById(id)
       ).filter(Boolean);
@@ -35,6 +39,7 @@ async function extractVariables() {
       };
     }
 
+    console.log('Extracted tokens:', tokens);
     return tokens;
   } catch (error) {
     console.error('Error extracting variables:', error);
@@ -58,6 +63,8 @@ function mapVariableTypeToTokenType(figmaType) {
 // Sync to GitHub
 async function syncToGitHub(tokens, config) {
   try {
+    console.log('Starting GitHub sync...');
+    
     // Get current file SHA (required for updates)
     let sha;
     try {
@@ -74,9 +81,10 @@ async function syncToGitHub(tokens, config) {
       if (response.ok) {
         const data = await response.json();
         sha = data.sha;
+        console.log('Found existing file, SHA:', sha);
       }
     } catch (error) {
-      // File doesn't exist yet, that's ok
+      console.log('File does not exist yet, will create new one');
     }
 
     // Create/update tokens.json
@@ -102,16 +110,19 @@ async function syncToGitHub(tokens, config) {
 
     if (!commitResponse.ok) {
       const error = await commitResponse.text();
+      console.error('GitHub API error:', error);
       return { success: false, error };
     }
 
     const commitData = await commitResponse.json();
+    console.log('Successfully synced to GitHub:', commitData.commit.html_url);
     
     return {
       success: true,
       commitUrl: commitData.commit.html_url,
     };
   } catch (error) {
+    console.error('Sync error:', error);
     return {
       success: false,
       error: error.message || 'Unknown error',
@@ -121,6 +132,8 @@ async function syncToGitHub(tokens, config) {
 
 // Handle messages from the UI
 figma.ui.onmessage = async (msg) => {
+  console.log('Received message:', msg.type);
+  
   if (msg.type === 'extract-variables') {
     try {
       const tokens = await extractVariables();
@@ -129,6 +142,7 @@ figma.ui.onmessage = async (msg) => {
         tokens,
       });
     } catch (error) {
+      console.error('Extraction error:', error);
       figma.ui.postMessage({
         type: 'error',
         error: error.message || 'Failed to extract variables',
@@ -146,6 +160,7 @@ figma.ui.onmessage = async (msg) => {
         result,
       });
     } catch (error) {
+      console.error('Sync error:', error);
       figma.ui.postMessage({
         type: 'error',
         error: error.message || 'Failed to sync to GitHub',
