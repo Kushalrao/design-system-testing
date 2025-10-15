@@ -5,113 +5,64 @@
  */
 
 export const typography = {
-  // Font families
-  fontFamily: {
-    primary: 'System', // iOS: San Francisco, Android: Roboto
-    mono: 'Courier New',
+  "fontSize": {
+    "font-size-xs": {
+      "128:0": 12,
+      "128:4": 0
+    },
+    "font-size-cap-caption": {
+      "128:0": 12,
+      "128:4": 0
+    },
+    "font-size-xl": {
+      "128:0": 18,
+      "128:4": 0
+    },
+    "font-size-m": {
+      "128:0": 21,
+      "128:4": 0
+    }
   },
-  
-  // Font sizes
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-    '2xl': 24,
-    '3xl': 30,
-    '4xl': 36,
-    '5xl': 48,
-    '6xl': 60,
+  "fontWeight": {
+    "weight-bold": {
+      "128:0": "Bold",
+      "128:4": "String value"
+    },
+    "weight-semi-bold": {
+      "128:0": "Semi-bold",
+      "128:4": "String value"
+    }
   },
-  
-  // Font weights
-  fontWeight: {
-    normal: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-  
-  // Line heights
-  lineHeight: {
-    tight: 1.25,
-    normal: 1.5,
-    relaxed: 1.75,
-  },
-  
-  // Letter spacing
-  letterSpacing: {
-    tight: -0.5,
-    normal: 0,
-    wide: 0.5,
-  },
-  
-  // Typography scales
-  heading: {
-    h1: {
-      fontSize: 36,
-      fontWeight: '700' as const,
-      lineHeight: 1.25,
-      letterSpacing: -0.5,
+  "lineHeight": {
+    "large-line-height": {
+      "128:0": 25,
+      "128:4": 0
     },
-    h2: {
-      fontSize: 30,
-      fontWeight: '700' as const,
-      lineHeight: 1.25,
-      letterSpacing: -0.5,
-    },
-    h3: {
-      fontSize: 24,
-      fontWeight: '600' as const,
-      lineHeight: 1.25,
-      letterSpacing: 0,
-    },
-    h4: {
-      fontSize: 20,
-      fontWeight: '600' as const,
-      lineHeight: 1.25,
-      letterSpacing: 0,
-    },
-    h5: {
-      fontSize: 18,
-      fontWeight: '600' as const,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-    },
-    h6: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-    },
-  },
-  body: {
-    large: {
-      fontSize: 18,
-      fontWeight: '400' as const,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-    },
-    medium: {
-      fontSize: 16,
-      fontWeight: '400' as const,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-    },
-    small: {
-      fontSize: 14,
-      fontWeight: '400' as const,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-    },
-  },
-  caption: {
-    fontSize: 12,
-    fontWeight: '400' as const,
-    lineHeight: 1.5,
-    letterSpacing: 0,
-  },
+    "average-line-height": {
+      "128:0": 15,
+      "128:4": 0
+    }
+  }
 } as const;
 
 export type TypographyToken = keyof typeof typography;
+
+/**
+ * Helper to get typography value for a specific mode
+ */
+export function getTypographyValue(
+  category: 'fontSize' | 'fontWeight' | 'lineHeight',
+  token: string,
+  modeId?: string
+): number | string {
+  const value = (typography as any)[category][token];
+  if (!value) return 0;
+  
+  if (typeof value === 'object' && modeId) {
+    return (value[modeId] || Object.values(value)[0]) as number | string;
+  }
+  if (typeof value === 'object') {
+    return Object.values(value)[0] as number | string;
+  }
+  return value as number | string;
+}

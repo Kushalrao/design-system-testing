@@ -1,9 +1,13 @@
 /**
- * Theme System
- * Combines all design tokens into a cohesive theme
+ * Theme Configuration
+ * Combines design tokens for consistent styling
  */
 
-import { colors, spacing, typography, radius, shadows } from '../tokens';
+import { colors, spacing, typography, radius, shadows, getColor, getSpacing, getRadius } from '../tokens';
+
+// Get the first available mode ID from tokens
+const firstColor = Object.values(colors)[0];
+const defaultModeId = firstColor ? Object.keys(firstColor)[0] : '1396:1';
 
 export const theme = {
   colors,
@@ -12,43 +16,40 @@ export const theme = {
   radius,
   shadows,
   
-  // Computed theme values
+  // Common component styles using tokens
   components: {
     button: {
       primary: {
-        backgroundColor: colors.semantic.primary.light,
-        color: colors.primitive.white,
-        borderRadius: radius.button,
-        paddingVertical: spacing.button.paddingVertical,
-        paddingHorizontal: spacing.button.paddingHorizontal,
-        ...typography.body.medium,
-        ...shadows.button,
+        backgroundColor: getColor('primary-800', defaultModeId),
+        color: getColor('ss-foreground', defaultModeId),
+        borderRadius: getRadius('corner-radius-2'),
+        paddingVertical: getSpacing('spacing-m'),
+        paddingHorizontal: getSpacing('spacing-l'),
+        ...shadows.md,
       },
       secondary: {
-        backgroundColor: colors.semantic.secondary.light,
-        color: colors.primitive.white,
-        borderRadius: radius.button,
-        paddingVertical: spacing.button.paddingVertical,
-        paddingHorizontal: spacing.button.paddingHorizontal,
-        ...typography.body.medium,
-        ...shadows.button,
+        backgroundColor: getColor('primary-600', defaultModeId),
+        color: getColor('ss-foreground', defaultModeId),
+        borderRadius: getRadius('corner-radius-2'),
+        paddingVertical: getSpacing('spacing-m'),
+        paddingHorizontal: getSpacing('spacing-l'),
+        ...shadows.md,
       },
     },
     input: {
-      backgroundColor: colors.primitive.white,
-      borderColor: colors.primitive.gray300,
-      borderRadius: radius.input,
-      paddingVertical: spacing.input.paddingVertical,
-      paddingHorizontal: spacing.input.paddingHorizontal,
-      ...typography.body.medium,
+      backgroundColor: getColor('ss-background', defaultModeId),
+      borderColor: getColor('secondary-400', defaultModeId),
+      borderRadius: getRadius('corner-radius-2'),
+      paddingVertical: getSpacing('spacing-m'),
+      paddingHorizontal: getSpacing('spacing-l'),
     },
     card: {
-      backgroundColor: colors.primitive.white,
-      borderRadius: radius.card,
-      padding: spacing.card.padding,
-      ...shadows.card,
+      backgroundColor: getColor('ss-background', defaultModeId),
+      borderRadius: getRadius('corner-radius-1'),
+      padding: getSpacing('spacing-l'),
+      ...shadows.lg,
     },
   },
-} as const;
+};
 
 export type Theme = typeof theme;

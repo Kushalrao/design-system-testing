@@ -5,84 +5,96 @@
 
 import React from 'react';
 import { Text } from 'react-native';
-import type { TextProps } from 'react-native';
-import { typography, colors } from '../../tokens';
-import type { ColorMode } from '../../tokens';
-import { useColorScheme } from 'react-native';
+import type { TextProps, TextStyle } from 'react-native';
+import { colors, getColor, getTypographyValue } from '../../tokens';
 
 export interface TypographyProps extends TextProps {
-  variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'bodyLarge' | 'bodyMedium' | 'bodySmall' | 'caption';
-  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  children: React.ReactNode;
+  variant?: 'h1' | 'h2' | 'h3' | 'body' | 'bodyLarge' | 'caption';
+  color?: 'primary' | 'secondary' | 'custom';
+  customColor?: string;
+  style?: TextStyle;
 }
 
 export const Typography: React.FC<TypographyProps> = ({
-  variant = 'bodyMedium',
+  variant = 'body',
   color = 'primary',
-  style,
+  customColor,
   children,
+  style,
   ...props
 }) => {
-  const colorScheme = useColorScheme() as ColorMode;
-  
-  const getTypographyStyle = () => {
+  // Get the first available mode ID from any token
+  const firstColor = Object.values(colors)[0];
+  const defaultModeId = firstColor ? Object.keys(firstColor)[0] : '1396:1';
+
+  const getVariantStyle = (): TextStyle => {
     switch (variant) {
       case 'h1':
-        return typography.heading.h1;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-xl', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'large-line-height', defaultModeId) as number,
+          fontWeight: '700',
+        };
       case 'h2':
-        return typography.heading.h2;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-m', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'large-line-height', defaultModeId) as number,
+          fontWeight: '700',
+        };
       case 'h3':
-        return typography.heading.h3;
-      case 'h4':
-        return typography.heading.h4;
-      case 'h5':
-        return typography.heading.h5;
-      case 'h6':
-        return typography.heading.h6;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-m', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'average-line-height', defaultModeId) as number,
+          fontWeight: '600',
+        };
       case 'bodyLarge':
-        return typography.body.large;
-      case 'bodyMedium':
-        return typography.body.medium;
-      case 'bodySmall':
-        return typography.body.small;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-m', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'average-line-height', defaultModeId) as number,
+          fontWeight: '400',
+        };
+      case 'body':
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-xs', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'average-line-height', defaultModeId) as number,
+          fontWeight: '400',
+        };
       case 'caption':
-        return typography.caption;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-cap-caption', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'average-line-height', defaultModeId) as number,
+          fontWeight: '400',
+        };
       default:
-        return typography.body.medium;
+        return {
+          fontSize: getTypographyValue('fontSize', 'font-size-xs', defaultModeId) as number,
+          lineHeight: getTypographyValue('lineHeight', 'average-line-height', defaultModeId) as number,
+          fontWeight: '400',
+        };
     }
   };
 
-  const getTextColor = () => {
+  const getTextColor = (): string => {
+    if (customColor) return customColor;
+
     switch (color) {
       case 'primary':
-        return colors.semantic.text.primary[colorScheme];
+        return getColor('primary-800', defaultModeId);
       case 'secondary':
-        return colors.semantic.text.secondary[colorScheme];
-      case 'success':
-        return colors.semantic.success[colorScheme];
-      case 'warning':
-        return colors.semantic.warning[colorScheme];
-      case 'error':
-        return colors.semantic.error[colorScheme];
+        return getColor('primary-600', defaultModeId);
       default:
-        return colors.semantic.text.primary[colorScheme];
+        return getColor('primary-800', defaultModeId);
     }
   };
 
-  const typographyStyle = getTypographyStyle();
+  const variantStyle = getVariantStyle();
   const textColor = getTextColor();
 
   return (
     <Text
       style={[
-        {
-          fontFamily: typography.fontFamily.primary,
-          fontSize: typographyStyle.fontSize,
-          fontWeight: typographyStyle.fontWeight,
-          lineHeight: typographyStyle.lineHeight * typographyStyle.fontSize,
-          letterSpacing: typographyStyle.letterSpacing,
-          color: textColor,
-        },
+        variantStyle,
+        { color: textColor },
         style,
       ]}
       {...props}
@@ -91,44 +103,3 @@ export const Typography: React.FC<TypographyProps> = ({
     </Text>
   );
 };
-
-// Convenience components for common typography variants
-export const Heading1: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h1" {...props} />
-);
-
-export const Heading2: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h2" {...props} />
-);
-
-export const Heading3: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h3" {...props} />
-);
-
-export const Heading4: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h4" {...props} />
-);
-
-export const Heading5: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h5" {...props} />
-);
-
-export const Heading6: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="h6" {...props} />
-);
-
-export const BodyLarge: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="bodyLarge" {...props} />
-);
-
-export const BodyMedium: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="bodyMedium" {...props} />
-);
-
-export const BodySmall: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="bodySmall" {...props} />
-);
-
-export const Caption: React.FC<Omit<TypographyProps, 'variant'>> = (props) => (
-  <Typography variant="caption" {...props} />
-);

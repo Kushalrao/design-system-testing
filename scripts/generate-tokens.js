@@ -11,21 +11,52 @@ const path = require('path');
 const TOKENS_FILE = path.join(__dirname, '..', 'tokens.json');
 const OUTPUT_DIR = path.join(__dirname, '..', 'src', 'tokens');
 
-function generateColors(tokens) {
-  const colors = {
-    primitive: {},
-    semantic: {},
+/**
+ * Convert RGBA object to hex string
+ * @param {Object} rgba - {r, g, b, a} where values are 0-1
+ * @returns {string} - Hex color string like "#ff5733"
+ */
+function rgbaToHex(rgba) {
+  const r = Math.round(rgba.r * 255);
+  const g = Math.round(rgba.g * 255);
+  const b = Math.round(rgba.b * 255);
+  
+  const toHex = (n) => {
+    const hex = n.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
   };
+  
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
 
-  // Process color tokens
+/**
+ * Process color value from Figma
+ * Converts mode-based RGBA values to hex strings
+ */
+function processColorValue(value) {
+  const result = {};
+  Object.entries(value).forEach(([modeId, rgba]) => {
+    result[modeId] = rgbaToHex(rgba);
+  });
+  return result;
+}
+
+/**
+ * Process spacing/number value from Figma
+ * Returns the numeric values as-is
+ */
+function processSpacingValue(value) {
+  return value;
+}
+
+function generateColors(tokens) {
+  const colors = {};
+
+  // Process color tokens from all collections
   Object.entries(tokens.collections).forEach(([collectionName, collection]) => {
     collection.tokens.forEach(token => {
       if (token.type === 'color') {
-        if (collectionName.toLowerCase().includes('primitive')) {
-          colors.primitive[token.name] = token.value;
-        } else {
-          colors.semantic[token.name] = token.value;
-        }
+        colors[token.name] = processColorValue(token.value);
       }
     });
   });
@@ -38,21 +69,26 @@ function generateColors(tokens) {
 
 export const colors = ${JSON.stringify(colors, null, 2)} as const;
 
-export type ColorMode = 'light' | 'dark';
-export type ColorToken = keyof typeof colors.semantic;
+export type ColorToken = keyof typeof colors;
+
+/**
+ * Helper to get color value for a specific mode
+ */
+export function getColor(token: ColorToken, modeId: string): string {
+  const colorValue = colors[token];
+  return (colorValue as any)[modeId] || Object.values(colorValue)[0] as string;
+}
 `;
 }
 
 function generateSpacing(tokens) {
-  const spacing = {
-    base: 4,
-  };
+  const spacing = {};
 
-  // Process spacing tokens
+  // Process spacing tokens from all collections
   Object.entries(tokens.collections).forEach(([collectionName, collection]) => {
     collection.tokens.forEach(token => {
-      if (token.type === 'spacing') {
-        spacing[token.name] = token.value;
+      if (token.type === 'spacing' && !collectionName.toLowerCase().includes('typography')) {
+        spacing[token.name] = processSpacingValue(token.value);
       }
     });
   });
@@ -66,33 +102,46 @@ function generateSpacing(tokens) {
 export const spacing = ${JSON.stringify(spacing, null, 2)} as const;
 
 export type SpacingToken = keyof typeof spacing;
+
+/**
+ * Helper to get spacing value for a specific mode
+ */
+export function getSpacing(token: SpacingToken, modeId?: string): number {
+  const spacingValue = spacing[token];
+  if (typeof spacingValue === 'object' && modeId) {
+    return (spacingValue as any)[modeId] || Object.values(spacingValue)[0] as number;
+  }
+  if (typeof spacingValue === 'object') {
+    return Object.values(spacingValue)[0] as number;
+  }
+  return spacingValue as number;
+}
 `;
 }
 
 function generateTypography(tokens) {
   const typography = {
-    fontFamily: {
-      primary: 'System',
-      mono: 'Courier New',
-    },
     fontSize: {},
-    fontWeight: {
-      normal: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
-    },
+    fontWeight: {},
+    lineHeight: {},
   };
 
   // Process typography tokens
   Object.entries(tokens.collections).forEach(([collectionName, collection]) => {
-    collection.tokens.forEach(token => {
-      if (token.type === 'typography') {
+    if (collectionName.toLowerCase().includes('typography')) {
+      collection.tokens.forEach(token => {
         if (token.name.includes('font-size')) {
-          typography.fontSize[token.name.replace('font-size-', '')] = token.value;
+          typography.fontSize[token.name] = token.value;
+        } else if (token.name.includes('weight')) {
+          typography.fontWeight[token.name] = token.value;
+        } else if (token.name.includes('line-height')) {
+          typography.lineHeight[token.name] = token.value;
+        } else if (token.type === 'spacing') {
+          // Other typography-related spacing
+          typography.fontSize[token.name] = token.value;
         }
-      }
-    });
+      });
+    }
   });
 
   return `/**
@@ -104,19 +153,40 @@ function generateTypography(tokens) {
 export const typography = ${JSON.stringify(typography, null, 2)} as const;
 
 export type TypographyToken = keyof typeof typography;
+
+/**
+ * Helper to get typography value for a specific mode
+ */
+export function getTypographyValue(
+  category: 'fontSize' | 'fontWeight' | 'lineHeight',
+  token: string,
+  modeId?: string
+): number | string {
+  const value = (typography as any)[category][token];
+  if (!value) return 0;
+  
+  if (typeof value === 'object' && modeId) {
+    return value[modeId] || Object.values(value)[0];
+  }
+  if (typeof value === 'object') {
+    return Object.values(value)[0];
+  }
+  return value;
+}
 `;
 }
 
 function generateRadius(tokens) {
-  const radius = {
-    none: 0,
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
-    '2xl': 24,
-    full: 9999,
-  };
+  const radius = {};
+
+  // Process corner radius tokens
+  Object.entries(tokens.collections).forEach(([collectionName, collection]) => {
+    if (collectionName.toLowerCase().includes('corner') || collectionName.toLowerCase().includes('radius')) {
+      collection.tokens.forEach(token => {
+        radius[token.name] = processSpacingValue(token.value);
+      });
+    }
+  });
 
   return `/**
  * Border Radius Design Tokens
@@ -127,33 +197,46 @@ function generateRadius(tokens) {
 export const radius = ${JSON.stringify(radius, null, 2)} as const;
 
 export type RadiusToken = keyof typeof radius;
+
+/**
+ * Helper to get radius value for a specific mode
+ */
+export function getRadius(token: RadiusToken, modeId?: string): number {
+  const radiusValue = radius[token];
+  if (typeof radiusValue === 'object' && modeId) {
+    return (radiusValue as any)[modeId] || Object.values(radiusValue)[0] as number;
+  }
+  if (typeof radiusValue === 'object') {
+    return Object.values(radiusValue)[0] as number;
+  }
+  return radiusValue as number;
+}
 `;
 }
 
 function generateShadows() {
+  // Keep default shadows for now since Figma doesn't export shadow variables well
   const shadows = {
-    ios: {
-      sm: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.18,
-        shadowRadius: 1.0,
-        elevation: 1,
-      },
-      md: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.23,
-        shadowRadius: 2.62,
-        elevation: 4,
-      },
-      lg: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.30,
-        shadowRadius: 4.65,
-        elevation: 8,
-      },
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+      elevation: 1,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.23,
+      shadowRadius: 2.62,
+      elevation: 4,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.30,
+      shadowRadius: 4.65,
+      elevation: 8,
     },
   };
 
@@ -182,7 +265,7 @@ export * from './radius';
 export * from './shadows';
 
 // Re-export commonly used types
-export type { ColorMode, ColorToken } from './colors';
+export type { ColorToken } from './colors';
 export type { SpacingToken } from './spacing';
 export type { TypographyToken } from './typography';
 export type { RadiusToken } from './radius';
@@ -195,7 +278,7 @@ function main() {
 
   // Check if tokens.json exists
   if (!fs.existsSync(TOKENS_FILE)) {
-    console.log('⚠️  tokens.json not found. Using default tokens.');
+    console.log('⚠️  tokens.json not found. Skipping token generation.');
     return;
   }
 

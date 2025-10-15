@@ -5,19 +5,26 @@
  */
 
 export const radius = {
-  none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  '2xl': 24,
-  full: 9999, // For circular elements
-  
-  // Component-specific radius
-  button: 8,
-  input: 8,
-  card: 12,
-  modal: 16,
+  "corner-radius-1": {
+    "1396:2": 23
+  },
+  "corner-radius-2": {
+    "1396:2": 12
+  }
 } as const;
 
 export type RadiusToken = keyof typeof radius;
+
+/**
+ * Helper to get radius value for a specific mode
+ */
+export function getRadius(token: RadiusToken, modeId?: string): number {
+  const radiusValue = radius[token];
+  if (typeof radiusValue === 'object' && modeId) {
+    return (radiusValue as any)[modeId] || Object.values(radiusValue)[0] as number;
+  }
+  if (typeof radiusValue === 'object') {
+    return Object.values(radiusValue)[0] as number;
+  }
+  return radiusValue as number;
+}

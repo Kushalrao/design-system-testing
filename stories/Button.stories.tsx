@@ -48,7 +48,6 @@ export const Variants: Story = {
     <View style={{ gap: 16 }}>
       <Button variant="primary">Primary Button</Button>
       <Button variant="secondary">Secondary Button</Button>
-      <Button variant="tertiary">Tertiary Button</Button>
       <Button variant="ghost">Ghost Button</Button>
     </View>
   ),

@@ -10,7 +10,7 @@ export * from './radius';
 export * from './shadows';
 
 // Re-export commonly used types
-export type { ColorMode, ColorToken } from './colors';
+export type { ColorToken } from './colors';
 export type { SpacingToken } from './spacing';
 export type { TypographyToken } from './typography';
 export type { RadiusToken } from './radius';

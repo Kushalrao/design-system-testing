@@ -5,76 +5,34 @@
  */
 
 export const colors = {
-  primitive: {
-    // Brand colors
-    blue50: '#eff6ff',
-    blue100: '#dbeafe',
-    blue200: '#bfdbfe',
-    blue300: '#93c5fd',
-    blue400: '#60a5fa',
-    blue500: '#3b82f6',
-    blue600: '#2563eb',
-    blue700: '#1d4ed8',
-    blue800: '#1e40af',
-    blue900: '#1e3a8a',
-    
-    // Neutral colors
-    gray50: '#f9fafb',
-    gray100: '#f3f4f6',
-    gray200: '#e5e7eb',
-    gray300: '#d1d5db',
-    gray400: '#9ca3af',
-    gray500: '#6b7280',
-    gray600: '#4b5563',
-    gray700: '#374151',
-    gray800: '#1f2937',
-    gray900: '#111827',
-    
-    // Semantic colors
-    white: '#ffffff',
-    black: '#000000',
+  "primary-800": {
+    "1396:1": "#000000"
   },
-  semantic: {
-    primary: {
-      light: '#3b82f6', // blue-500
-      dark: '#60a5fa',  // blue-400
-    },
-    secondary: {
-      light: '#6b7280', // gray-500
-      dark: '#9ca3af',  // gray-400
-    },
-    success: {
-      light: '#10b981', // emerald-500
-      dark: '#34d399',  // emerald-400
-    },
-    warning: {
-      light: '#f59e0b', // amber-500
-      dark: '#fbbf24',  // amber-400
-    },
-    error: {
-      light: '#ef4444', // red-500
-      dark: '#f87171',  // red-400
-    },
-    background: {
-      light: '#ffffff',
-      dark: '#111827', // gray-900
-    },
-    surface: {
-      light: '#f9fafb', // gray-50
-      dark: '#1f2937',  // gray-800
-    },
-    text: {
-      primary: {
-        light: '#111827', // gray-900
-        dark: '#f9fafb',  // gray-50
-      },
-      secondary: {
-        light: '#6b7280', // gray-500
-        dark: '#9ca3af',  // gray-400
-      },
-    },
+  "primary-600": {
+    "1396:1": "#212121"
   },
+  "secondary-400": {
+    "1396:1": "#c2c2c2"
+  },
+  "ss-foreground": {
+    "1396:1": "#ffffff"
+  },
+  "ss-background": {
+    "1396:1": "#f7f7f2"
+  }
 } as const;
 
-export type ColorMode = 'light' | 'dark';
-export type ColorToken = keyof typeof colors.semantic;
+export type ColorToken = keyof typeof colors;
+
+/**
+ * Helper to get color value for a specific mode
+ */
+export function getColor(token: ColorToken, modeId?: string): string {
+  const colorValue = colors[token];
+  if (!colorValue) return '#000000';
+  
+  if (modeId && (colorValue as any)[modeId]) {
+    return (colorValue as any)[modeId];
+  }
+  return Object.values(colorValue)[0] as string;
+}

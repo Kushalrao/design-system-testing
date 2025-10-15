@@ -6,13 +6,11 @@
 import React from 'react';
 import { Pressable } from 'react-native';
 import type { PressableProps, ViewStyle } from 'react-native';
-import { colors, spacing, radius, shadows } from '../../tokens';
-import type { ColorMode } from '../../tokens';
-import { useColorScheme } from 'react-native';
+import { colors, shadows, getColor, getSpacing, getRadius } from '../../tokens';
 import { Typography } from '../Typography';
 
 export interface ButtonProps extends Omit<PressableProps, 'style'> {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -29,32 +27,34 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
-  const colorScheme = useColorScheme() as ColorMode;
+  // Get the first available mode ID from any token
+  const firstColor = Object.values(colors)[0];
+  const defaultModeId = firstColor ? Object.keys(firstColor)[0] : '1396:1';
 
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: radius.button,
-      paddingVertical: spacing.button.paddingVertical,
-      paddingHorizontal: spacing.button.paddingHorizontal,
+      borderRadius: getRadius('corner-radius-2'),
+      paddingVertical: getSpacing('spacing-m'),
+      paddingHorizontal: getSpacing('spacing-l'),
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'row',
-      ...shadows.button,
+      ...shadows.md,
     };
 
     // Size variants
     const sizeStyles: Record<string, ViewStyle> = {
       sm: {
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.md,
+        paddingVertical: getSpacing('spacing-s'),
+        paddingHorizontal: getSpacing('spacing-m'),
       },
       md: {
-        paddingVertical: spacing.button.paddingVertical,
-        paddingHorizontal: spacing.button.paddingHorizontal,
+        paddingVertical: getSpacing('spacing-m'),
+        paddingHorizontal: getSpacing('spacing-l'),
       },
       lg: {
-        paddingVertical: spacing.lg,
-        paddingHorizontal: spacing.xl,
+        paddingVertical: getSpacing('spacing-l'),
+        paddingHorizontal: getSpacing('spacing-xl'),
       },
     };
 
@@ -62,23 +62,20 @@ export const Button: React.FC<ButtonProps> = ({
     const variantStyles: Record<string, ViewStyle> = {
       primary: {
         backgroundColor: disabled 
-          ? colors.primitive.gray300 
-          : colors.semantic.primary[colorScheme],
+          ? getColor('secondary-400', defaultModeId)
+          : getColor('primary-800', defaultModeId),
       },
       secondary: {
         backgroundColor: disabled 
-          ? colors.primitive.gray300 
-          : colors.semantic.secondary[colorScheme],
-      },
-      tertiary: {
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: disabled 
-          ? colors.primitive.gray300 
-          : colors.semantic.primary[colorScheme],
+          ? getColor('secondary-400', defaultModeId)
+          : getColor('primary-600', defaultModeId),
       },
       ghost: {
         backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: disabled 
+          ? getColor('secondary-400', defaultModeId)
+          : getColor('primary-800', defaultModeId),
       },
     };
 
@@ -91,32 +88,30 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getTextColor = (): string => {
     if (disabled) {
-      return colors.primitive.gray500;
+      return getColor('secondary-400', defaultModeId);
     }
 
     switch (variant) {
       case 'primary':
       case 'secondary':
-        return colors.primitive.white;
-      case 'tertiary':
-        return colors.semantic.primary[colorScheme];
+        return getColor('ss-foreground', defaultModeId);
       case 'ghost':
-        return colors.semantic.primary[colorScheme];
+        return getColor('primary-800', defaultModeId);
       default:
-        return colors.primitive.white;
+        return getColor('ss-foreground', defaultModeId);
     }
   };
 
   const getTextVariant = () => {
     switch (size) {
       case 'sm':
-        return 'bodySmall';
+        return 'caption';
       case 'md':
-        return 'bodyMedium';
+        return 'body';
       case 'lg':
         return 'bodyLarge';
       default:
-        return 'bodyMedium';
+        return 'body';
     }
   };
 

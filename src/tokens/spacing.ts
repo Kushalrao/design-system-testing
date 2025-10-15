@@ -5,34 +5,38 @@
  */
 
 export const spacing = {
-  // Base spacing unit (4px)
-  base: 4,
-  
-  // Spacing scale (multiples of base)
-  xs: 4,    // 4px
-  sm: 8,    // 8px
-  md: 16,   // 16px
-  lg: 24,   // 24px
-  xl: 32,   // 32px
-  '2xl': 48, // 48px
-  '3xl': 64, // 64px
-  '4xl': 96, // 96px
-  
-  // Component-specific spacing
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    gap: 8,
+  "spacing-s": {
+    "1396:0": 7
   },
-  input: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 8,
+  "spacing-m": {
+    "1396:0": 11
   },
-  card: {
-    padding: 16,
-    gap: 12,
+  "spacing-l": {
+    "1396:0": 14
   },
+  "spacing-xl": {
+    "1396:0": 21
+  },
+  "corner-radius-1": {
+    "1396:2": 23
+  },
+  "corner-radius-2": {
+    "1396:2": 12
+  }
 } as const;
 
 export type SpacingToken = keyof typeof spacing;
+
+/**
+ * Helper to get spacing value for a specific mode
+ */
+export function getSpacing(token: SpacingToken, modeId?: string): number {
+  const spacingValue = spacing[token];
+  if (typeof spacingValue === 'object' && modeId) {
+    return (spacingValue as any)[modeId] || Object.values(spacingValue)[0] as number;
+  }
+  if (typeof spacingValue === 'object') {
+    return Object.values(spacingValue)[0] as number;
+  }
+  return spacingValue as number;
+}

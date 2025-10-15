@@ -5,60 +5,36 @@
  */
 
 export const shadows = {
-  // iOS shadows
-  ios: {
-    sm: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.18,
-      shadowRadius: 1.0,
-      elevation: 1, // Android fallback
+  "sm": {
+    "shadowColor": "#000",
+    "shadowOffset": {
+      "width": 0,
+      "height": 1
     },
-    md: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.23,
-      shadowRadius: 2.62,
-      elevation: 4, // Android fallback
+    "shadowOpacity": 0.18,
+    "shadowRadius": 1,
+    "elevation": 1
+  },
+  "md": {
+    "shadowColor": "#000",
+    "shadowOffset": {
+      "width": 0,
+      "height": 2
     },
-    lg: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.30,
-      shadowRadius: 4.65,
-      elevation: 8, // Android fallback
+    "shadowOpacity": 0.23,
+    "shadowRadius": 2.62,
+    "elevation": 4
+  },
+  "lg": {
+    "shadowColor": "#000",
+    "shadowOffset": {
+      "width": 0,
+      "height": 4
     },
-    xl: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.37,
-      shadowRadius: 7.49,
-      elevation: 12, // Android fallback
-    },
-  },
-  
-  // Component-specific shadows
-  button: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.18,
-    shadowRadius: 1.0,
-    elevation: 1,
-  },
-  modal: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.30,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
+    "shadowOpacity": 0.3,
+    "shadowRadius": 4.65,
+    "elevation": 8
+  }
 } as const;
 
 export type ShadowToken = keyof typeof shadows;
